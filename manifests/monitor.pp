@@ -47,7 +47,7 @@ define monit::monitor (
   $start_timeout    = undef,
   $stop_timeout     = undef,
   $group            = $name,
-  $every_cycles     = 1,
+  $every_cycles     = undef,
   $uid              = '',
   $gid              = '',
 ) {
