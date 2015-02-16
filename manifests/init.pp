@@ -10,6 +10,14 @@
 # [*delay*]     - How long to wait before actually performing any action
 # [*logfile*]   - What file for monit use for logging
 # [*mailserver] - Which mailserver to use
+# [*collector]  - mmonit server url
+# [*httpd_port*]      - Configures the httpd port to be used, by default 2812,
+# [*enable_ssl*]      - Enable ssl, false by default
+# [*pemfile*]         - Path to the pemfile
+# [*allow_self_cert*] - Allow self certification, by default set to false
+# [*only_localhost*]  - Allow connections from localhost only, by default true
+# [*allows*]          - Allowed connections, by default 'localhost'. Use an
+#                     - array for multiple connections.
 # === Examples
 #
 #  class { 'monit':
@@ -21,8 +29,9 @@
 #
 # Eivind Uggedal <eivind@uggedal.com>
 # Jonathan Thurman <jthurman@newrelic.com>
+# + some mods by Andrii Guselietov <guseletov@gmail.com>, TextKernel B.V.
 #
-# === Copyright
+# === Original Copyright
 #
 # Copyright 2011 Eivind Uggedal <eivind@uggedal.com>
 #
@@ -35,12 +44,24 @@ class monit (
   $logfile    = 'UNSET',
   $mailserver = 'localhost',
   $mailformat = undef,
+  $collector  = undef,
+  $httpd_port = '2812',
+  $enable_ssl = false,
+  $pemfile = undef,
+  $allow_self_cert = false,
+  $only_localhost = true,
+  $allows = 'localhost',
 ) {
   include monit::params
 
-  $idfile_real = $idfile ? {
-    'UNSET' => $monit::params::idfile,
-    default => $idfile
+  # Special hack for RedHat/CenOS 5
+  if $::operatingsystem == 'CentOS' and $::operatingsystemmajrelease == '5' {
+    $idfile_real = ''
+  } else {
+    $idfile_real = $idfile ? {
+      'UNSET' => $monit::params::idfile,
+      default => $idfile
+    }
   }
 
   $logfile_real = $logfile ? {
@@ -66,7 +87,8 @@ class monit (
   }
 
   package { $monit::params::monit_package:
-    ensure => $ensure,
+    ensure          => $ensure,
+    install_options => ['--enablerepo=epel'], # TextKernel addition
   }
 
   # Template uses: $admin, $conf_include, $interval, $logfile_real, $idfile
