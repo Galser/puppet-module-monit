@@ -67,3 +67,14 @@ You can also provide additional checks:
                  "if totalmem > 300 MB for 3 cycles then restart",
                  "if cpu > 50% for 2 cycles then alert"],
     }
+
+You can also specify not to run check every monit cycle like this :
+
+    monit::monitor { 'foreman-proxy':
+      pidfile         => '/var/run/foreman-proxy/foreman-proxy.pid',
+      ip_port         => 8443,
+      stop_timeout    => 30, 
+      start_timeout   => 30, 
+      every_cycles    => 2,
+    }
+
